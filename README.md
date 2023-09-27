@@ -5,7 +5,7 @@ Projeto de Implementação do Programa de Monitoria UFF 2023
 python 3.x<br>
 pygame
 ### Instalando Requerimentos
-python: [Aqui](https://www.python.org/downloads/)<br>
+python: [aqui](https://www.python.org/downloads/)<br>
 pygame: após instalar o python abra o cmd e digite "python -m pip install pygame"
 
 
