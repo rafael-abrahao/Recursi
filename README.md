@@ -1,8 +1,8 @@
 # Recursi
 
-## Requirements
+## Requerimentos
 python 3.x<br>
 pygame
 
-## Running
-run game.py
+## Executando
+execute <b>game.py</b> ou use a linha de comando <b>python game.py</b> 
