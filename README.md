@@ -1,7 +1,8 @@
 # Recursi
 
 ## Requirements
-### Python 3.x
-### Pygame
+python 3.x
+pygame
 
-### run game.py
+## Running
+run game.py
