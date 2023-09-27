@@ -1,6 +1,6 @@
 # Recursi
+Projeto de Implementação do Programa de Monitoria UFF 2023
 
-## Executando a partir do script
 ### Requerimentos
 python 3.x<br>
 pygame
