@@ -20,7 +20,7 @@ class FatRender:
 
     def __start(self):
         fat_text = ['int fat(','int n','){',
-                    '    if(','n',' >= 1)',
+                    '    if(','n',' <= 1)',
                     '        ','return 1',';',
                     '    return ','n * fat(n - 1)',';',
                     '}']
@@ -131,9 +131,11 @@ class FibRender:
         
         self.render()
 
-    def change_ret(self, ret1, ret2 = None):
-        if ret2 == None:
-            render2 = self.font.render('fib(n - 2)', True, BASE_COLOR)
+    def change_ret(self, ret1, ret2, n = None):
+        if n != None:
+            render2 = render_same([self.font.render('fib(', True, BASE_COLOR),
+                                  self.font.render(str(n - 2), True, RECCALL_COLOR),
+                                  self.font.render(')', True, BASE_COLOR)])
         else:
             render2 = self.font.render(str(ret2), True, RET_COLOR)
 
@@ -355,21 +357,25 @@ def __fib_aux(n):
 
 class TreeRender:
     def __init__(self, screen: Surface, root: TreeNode) -> None:
-        self.image = Surface((screen.get_width(), screen.get_height()), SRCALPHA)
         self.__render_index = 0
         self.__root = root
 
-        self.__level = max(get_level(self.__root), 3)
-        node_ammount = 2 ** self.__level
-        self.__node_size = int((self.image.get_width() - 20 - (node_ammount - 1) * 10)/node_ammount)
+        self.__level = get_level(self.__root)
+        self.__node_size = 50
+        min_size = 2 ** self.__level * (self.__node_size + 10)
+        self.image = Surface((max(screen.get_width(), min_size), screen.get_height()), SRCALPHA)
+        self.rect = self.image.get_rect()
+        self.should_scroll = False
+        if min_size > screen.get_width():
+            self.should_scroll = True
         self.__load_rects(self.__root)
+        spacing = (self.__root.rect.width/2 + 5) * 2 ** (max(self.__level, 3) - 1)
 
         self.__text_font = Font(None, int(self.__node_size/2))
         self.__value_font = Font(None, int(self.__node_size))
         self.__renders = []
         self.__load_first_node()
 
-        spacing = (self.__root.rect.width/2 + 5) * 2 ** (self.__level - 1)
         self.__run(self.__root, spacing)
 
     def advance(self):
@@ -385,7 +391,7 @@ class TreeRender:
     def __load_first_node(self):
         self.__root.rect.midtop = (self.image.get_width()/2, 10)
         new_surf = Surface((self.image.get_width(), self.image.get_height()), SRCALPHA)
-        draw.rect(new_surf, 'Gray', self.__root.rect)
+        draw.rect(new_surf, '#0a6405', self.__root.rect)
         text = self.__text_font.render(str(self.__root.text), True, 'Green')
         text_rect = text.get_rect(center = self.__root.rect.center)
         new_surf.blit(text, text_rect)
@@ -400,7 +406,7 @@ class TreeRender:
 
     def __run(self, root: TreeNode, spacing, back_surf = None):
         back = Surface((self.image.get_width(), self.image.get_height()), SRCALPHA)
-        back_txt = self.__text_font.render(str(root.text), True, 'Green')
+        back_txt = self.__text_font.render(str(root.text), True, 'Yellow')
         back_txt_rect = back_txt.get_rect(center = root.rect.center)
         back.blit(back_txt, back_txt_rect)
         if root.left != None:
@@ -420,17 +426,17 @@ class TreeRender:
             new_surf = Surface((self.image.get_width(), self.image.get_height()), SRCALPHA)
         else:
             new_surf = back_surf
-        draw.rect(new_surf, 'Gray', root.rect)
+        draw.rect(new_surf, '#0a6405', root.rect)
         txt = self.__value_font.render(str(root.value), True, 'White')
         txt_rect = txt.get_rect(center = root.rect.center)
         new_surf.blit(txt, txt_rect)
         self.__renders.append(new_surf)
         
-    def __paint(self, nodes: tuple, colors = ('White', 'Green')):
+    def __paint(self, nodes: tuple, colors = ('White', 'Yellow')):
         new_surf = Surface((self.image.get_width(), self.image.get_height()), SRCALPHA)
-        draw.line(new_surf, 'Purple', nodes[0].rect.center, nodes[1].rect.center, int(self.__node_size/8))
+        draw.line(new_surf, 'Brown', nodes[0].rect.center, nodes[1].rect.center, int(self.__node_size/8))
         for x in range(2):
-            draw.rect(new_surf, 'Gray', nodes[x])
+            draw.rect(new_surf, '#0a6405', nodes[x])
             txt = self.__text_font.render(nodes[x].text, True, colors[x])
             txt_rect = txt.get_rect(center = nodes[x].rect.center)
             new_surf.blit(txt, txt_rect)
@@ -454,7 +460,10 @@ class FibState:
         if self.reccall:
             render.change_reccall(self.n)
         if self.ret1 != None:
-            render.change_ret(self.ret1, self.ret2)
+            if self.ret2 == None:
+                render.change_ret(self.ret1, None, self.n)
+            else:
+                render.change_ret(self.ret1, self.ret2)
         if self.final != None:
             render.change_final(self.final)
         if self.highlight_one:
