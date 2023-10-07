@@ -27,7 +27,7 @@ clock = pygame.time.Clock()
 
 curr_mode = 0
 
-font = pygame.font.Font(None, 60)
+font = pygame.font.Font("assets\CascadiaCode.ttf", 30)
 
 main_func_text = ['int main(){',
                   ' ',
@@ -45,7 +45,7 @@ empty_surf.fill('Black')
 main_func_renders[3] = empty_surf.copy()
 main_func_renders[7] = empty_surf.copy()
 main_func_rects = []
-main_func_rects.append(main_func_renders[0].get_rect(midtop = (screen.get_width()/2, 200)))
+main_func_rects.append(main_func_renders[0].get_rect(midtop = (screen.get_width()/2 - 50, 200)))
 main_func_rects.append(main_func_renders[1].get_rect(topleft = main_func_rects[0].bottomleft))
 main_func_rects.append(main_func_renders[2].get_rect(topleft = main_func_rects[1].bottomleft))
 main_func_rects.append(main_func_renders[3].get_rect(midleft = main_func_rects[2].midright))
@@ -111,6 +111,8 @@ root = None
 states = None
 state_index = 0
 fib_finished = False
+start_scroll_pos = 0
+is_scrolling = False
 inner_mode = FUNC_MODE
 
 func = func_renders.FibRender(font)
@@ -165,6 +167,8 @@ while running:
                     states = func_renders.simulate_fib(fib_value)
                     state_index = 0
                     tree = func_renders.TreeRender(screen, root)
+                    print(tree.should_scroll)
+                    tree.rect.topleft = (0,0)
                     curr_mode = FIB_MODE
             if event.type == pygame.KEYDOWN:
                 if event.unicode.isdigit():
@@ -198,6 +202,19 @@ while running:
                     curr_mode = MAIN_MODE
         #fib events
         if curr_mode == FIB_MODE:
+            if inner_mode == TREE_MODE and tree.should_scroll:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if not ntx_fib_rect.collidepoint(event.pos) and not func_btn_rect.collidepoint(event.pos) and not back_to_main_rect.collidepoint(event.pos):
+                        start_scroll_pos = event.pos[0]
+                        is_scrolling = True
+                if is_scrolling and event.type == pygame.MOUSEMOTION:
+                    tree.rect.x += event.pos[0] - start_scroll_pos
+                    if tree.rect.x > 0:
+                        tree.rect.x = 0
+                    if tree.rect.topright[0] < SCREEN_WIDTH:
+                        tree.rect.topright = (SCREEN_WIDTH, 0)
+
+                    start_scroll_pos = event.pos[0]
             if event.type == pygame.MOUSEBUTTONUP:
                 if ntx_fib_rect.collidepoint(event.pos):
                     tree.advance()
@@ -208,7 +225,9 @@ while running:
                     else:
                         fib_finished = True
                 if inner_mode == TREE_MODE:
-                    if func_btn_rect.collidepoint(event.pos):
+                    if is_scrolling:
+                        is_scrolling = False
+                    elif func_btn_rect.collidepoint(event.pos):
                         ntx_fib_rect.midtop = (SCREEN_WIDTH/2, SCREEN_HEIGHT - 60)
                         inner_mode = -inner_mode
                 elif inner_mode == FUNC_MODE:
@@ -216,6 +235,7 @@ while running:
                         ntx_fib_rect.topleft = (SCREEN_WIDTH/2 + 20, SCREEN_HEIGHT - 60)
                         inner_mode = -inner_mode
                 if fib_finished and back_to_main_rect.collidepoint(event.pos):
+                    fib_finished = False
                     curr_mode = MAIN_MODE
 
     screen.fill('Black')
@@ -269,7 +289,7 @@ while running:
         else:
             screen.blit(ntx_fib_image, ntx_fib_rect)
         if inner_mode == TREE_MODE:
-            screen.blit(tree.image, (0,0))
+            screen.blit(tree.image, tree.rect)
             if func_btn_rect.collidepoint(mouse_pos):
                 screen.blit(func_btn_hover, func_btn_rect)
             else:
